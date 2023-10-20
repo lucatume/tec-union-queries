@@ -415,9 +415,7 @@ class Month_View_Filters {
 			// Build the stack for the day.
 			$spacer = tribe( Stack::class )->get_spacer();
 			// Start clean on the first day of the week to have a minimum height stack.
-			$is_start_of_week = (int) $day->format( 'w' ) === $start_of_week;
-			$prev_day_stack   = $is_start_of_week ? [] : $prev_day_stack;
-			$stack            = $this->build_stack( $prev_day_date, $prev_day_stack, $multiday_events, $spacer );
+			$stack            = $this->build_stack( $prev_day_date, $day_date, $prev_day_stack, $multiday_events, $spacer );
 
 			$day_data = [
 				'date'             => $day_date,
@@ -456,11 +454,12 @@ class Month_View_Filters {
 
 	/**
 	 * @param string               $prev_day_date
+	 * @param string               $day_date
 	 * @param array<WP_Post|mixed> $prev_day_stack A stack of Events and spacers from the previous day.
 	 * @param array<WP_Post>       $multiday_events
 	 * @param mixed                $spacer
 	 */
-	private function build_stack( string $prev_day_date, array $prev_day_stack, array $multiday_events, $spacer ): array {
+	private function build_stack( string $prev_day_date, string $day_date, array $prev_day_stack, array $multiday_events, $spacer ): array {
 		if ( count( $prev_day_stack ) === 0 ) {
 			return $multiday_events;
 		}
@@ -481,11 +480,20 @@ class Month_View_Filters {
 			}
 
 			// The Event ended on the previous day: add an Event unique to this day in its place, if possible.
-			if ( count( $unique_to_this_day ) ) {
-				$stack[ $key ] = array_shift( $unique_to_this_day );
-			} else {
-				$stack[ $key ] = $spacer;
+			$candidate = $spacer;
+			while ( count( $unique_to_this_day ) ) {
+				$candidate_event      = array_shift( $unique_to_this_day );
+				$candidate_start_date = $candidate_event->dates->start_display->format( 'Y-m-d' );
+
+				if ( $candidate_start_date !== $day_date ) {
+					continue;
+				}
+
+				$candidate = $candidate_event;
+				break;
 			}
+
+			$stack[ $key ] = $candidate;
 		}
 
 		// If there are still Events unique to this day to add, add them at the end of the stack.
@@ -501,7 +509,7 @@ class Month_View_Filters {
 	 */
 	private function build_days_interval( DateTimeInterface $start, DateTimeInterface $end ): DatePeriod {
 		$immutable_start = Dates::immutable( $start );
-		$one_day        = new DateInterval( 'P1D' );
+		$one_day         = new DateInterval( 'P1D' );
 		// We need this as the interval would not include the end date, and the `DatePeriod::INCLUDE_END_DATE` flag is only
 		// available in PHP 8.2+.
 		$immutable_end = Dates::immutable( $end )->add( $one_day );
