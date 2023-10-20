@@ -447,7 +447,7 @@ class Month_View_Filters {
 			}
 			$day_data['multiday_events'] = $trimmed_stack;
 		}
-		unset($day_data);
+		unset( $day_data );
 
 		$this->cache_days_data[ $cache_key ] = $days_data;
 
@@ -500,12 +500,12 @@ class Month_View_Filters {
 	 * @return DatePeriod<DateTimeImmutable>
 	 */
 	private function build_days_interval( DateTimeInterface $start, DateTimeInterface $end ): DatePeriod {
-		$immuable_start = Dates::immutable( $start );
+		$immutable_start = Dates::immutable( $start );
 		$one_day        = new DateInterval( 'P1D' );
 		// We need this as the interval would not include the end date, and the `DatePeriod::INCLUDE_END_DATE` flag is only
 		// available in PHP 8.2+.
 		$immutable_end = Dates::immutable( $end )->add( $one_day );
 
-		return new DatePeriod( $immuable_start, $one_day, $immutable_end );
+		return new DatePeriod( $immutable_start, $one_day, $immutable_end );
 	}
 }

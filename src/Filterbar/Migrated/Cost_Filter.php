@@ -1,6 +1,6 @@
 <?php
 
-namespace TEC\Events\Innovation_Day\Union_Queries\Filterbar;
+namespace TEC\Events\Innovation_Day\Union_Queries\Migrated\Filterbar;
 
 use Tribe\Events\Filterbar\Views\V2\Filters\Cost as Original_Filter;
 
